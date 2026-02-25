@@ -1,0 +1,116 @@
+Template for Financial Planning Policy
+
+I. Client Background
+
+1) Purpose
+Establish a clear sense of who the client is?highlighting their personal history, present circumstances, and anticipated life trajectory?enabling a deeper understanding of their financial context and planning priorities.
+
+2) Content
+	?	Personal Information
+	?	Social and Economic Background: Marital status, presence of dependents, and other relevant household relationships.
+	?	Life Progression: A chronological account of major milestones such as education, career development, marriage, family formation, and other key life events.
+	?	Future Outlook: where do clients see themselves years down the road, and future life plans
+
+II. Client Financial Snapshot
+
+1) Purpose
+To provide a clear and structured overview of the client?s current financial position, including their asset base, liabilities, income streams, and financial behaviors. This snapshot serves as the foundation for all subsequent planning and advisory work.
+
+2) Content
+	?	Source of Wealth: how the client accumulated their wealth (e.g., employment, business, inheritance, property, etc.).
+	?	Financial Allocation Milestones: Key events or decisions that significantly impacted the client?s financial position (e.g., property purchases, business exits, large investments).
+	?	Spending Patterns and Life Expenditures: Overview of regular spending behavior, lifestyle costs, and foreseeable major expenditures (e.g. education, healthcare, family support).
+	?	Wealth Management Experience: Summary of the client?s past investment experience, decision-making style, and any prior engagement with financial advisors or institutions.
+	?	Legal and Financial Entities: Relevant structures such as trusts, holding companies, joint accounts, or other legal vehicles linked to the client?s financial affairs.
+	?	Cashflow analytics
+
+
+III. Client Financial Needs
+
+1) Purpose
+Define the client?s investment needs using the SMART framework?ensuring that financial needs are Specific, Measurable, Achievable, Relevant, and Time-bound. This includes articulating the client?s expected return targets, risk tolerance, and any key investment preferences that influence strategy formulation.
+
+2) Content
+	?	Investment Objectives and Risk-Return Profile: A detailed summary of the client?s financial needs, desired outcomes, associated time horizons, and risk appetite.
+	?	Constraints and Payout Requirements: Any income needs, liquidity constraints, or planned withdrawals that may affect portfolio construction.
+	?	Special Circumstances: Additional factors?such as legal, regulatory, or personal considerations?that may impact the attainment or structuring of investment objectives.
+
+IV. Client Investment Preference
+
+1) Purpose
+Outline the client?s investment preferences, including any expressed interests in specific investment approaches, asset classes, geographic markets, sectors, or industries. It also captures potential behavioral biases or tendencies observed during interactions, helping to inform portfolio design and risk management strategies.
+
+2) Content
+	?	Investment Preferences: The client?s stated or implied or potential inclinations regarding investment style (e.g. passive vs. active), preferred asset classes (e.g. equities, fixed income, alternatives), geographic focus, and favored sectors or industries.
+	?	Behavioral Biases: Identified cognitive or emotional biases?such as loss aversion, overconfidence, or recency bias?that may influence the client?s investment decisions.
+	?	Special Considerations: Any unique circumstances, restrictions, or non-financial preferences that may impact investment choices.
+
+
+V. Taxes, Exclusions and Exemptions
+
+1) Purpose
+Outline the client?s tax status and define the strategic approaches employed to manage and minimize tax liabilities within the scope of the financial planning policy.
+
+2) Content
+	?	Client Tax Status: Client?s current tax residency, income tax obligations, and any applicable cross-border considerations.
+	?	Special Considerations: Any exclusions or exemptions available to the client will be incorporated into the investment approach to maximize after-tax outcomes.
+
+
+VI. Other Special Requirements
+
+1) Purpose
+To outline the client?s other special requirements
+
+
+VII. Portfolio
+
+1. Scope and Allocation Timeline 
+1) Scope of assets: the scope of assets the client is being recommended to allocate under this policy, including the total amount committed, the expected pace of capital deployment, and any relevant conditions or special considerations that may affect funding. 
+
+2. Governance
+1) Specify who is responsible for determining investment policy,executing investment policy, and monitoring the results of implementation of the policy.
+2) Describe the process for reviewing and updating the IPS. 
+3) Describe responsibility for engaging and discharging external advisers.
+4) Assign responsibility for determination of asset allocation,
+5) including inputs used and criteria for development of input assumptions.
+6) Assign responsibility for risk management, monitoring, and reporting.
+
+3. Investment, Return, and Risk Objectives
+1) Describe the overall investment objective.
+2) State the return, distribution, and risk requirements.
+3) Define the risk tolerance of the investor.
+4) Describe relevant constraints.
+5) Describe other considerations relevant to investment strategy.
+
+4. Investment Guidelines: To set forth the overarching principles and risk management thresholds that govern portfolio construction and ongoing oversight. This includes guidance on eligible asset classes, selection criteria for investment vehicles, portfolio rebalancing protocols, liquidity management, and risk monitoring practices.
+
+5. Investment Strategy
+
+a. What is the investment approach used in the portfolio? For us, its SAA based on long-term asset class outlook to build a diversified portfolio. 
+
+6. Investment Vehicle Selection
+
+a. Display selected vehicles and its corresponding allocation
+
+7. Risk Management
+1) Establish performance measurement and reporting accountabilities.
+2) Specify appropriate metrics for risk measurement and evaluation.
+
+Example?
+* Absolute Risk: The portfolio?s absolute risk is measured as the annualized standard deviation of simulated daily returns over the previous 250 business days. The absolute risk of the portfolio must remain within ñ2.5% of the agreed Strategic Asset Allocation (SAA) risk level (e.g., if the SAA portfolio risk is 7%, the actual portfolio risk must fall between 4.5% and 9.5% on an annualized basis). This threshold remains unchanged. 
+* Tracking Error: The tracking error, calculated using the same methodology but based on relative returns, measures active risk against the SAA benchmark. The minimum tracking error constraint is increased to 2.5% versus the SAA, with a maximum of 7.5% on an annualized basis (approximately 3 times the prior thresholds). 
+* Individual Asset Drawdown Trigger: If any individual asset or position drops more than 10% within a week, it will trigger an immediate forced sale to stabilize losses and prevent further drawdown. 
+* Cost Constraints: Investment fees shall be limited, and any changes from the SAA fulfillment must not increase the portfolio?s total expense ratio or Ongoing Charges Ratio (OCR) by more than 75 basis points (0.75%) per annum. 
+* Breach Response: If any of the predefined thresholds (absolute risk, tracking error, individual drawdown, or cost) are breached, the portfolio must be promptly adjusted?including forced sales where applicable?to bring it back within the agreed constraints. 
+* No short selling, no margin financing. 
+3) Define the process for rebalancing portfolios to target allocations.
+
+8. Policy Evaluation
+
+a. How is this policy being evaluated of its success?
+
+9. Fee Structure
+
+a. What is the policy fee, and how is it being charged? For us, its USD 2000, and charged at the end of each quarter. 
+
+10. Disclaimer and Acknowledgment

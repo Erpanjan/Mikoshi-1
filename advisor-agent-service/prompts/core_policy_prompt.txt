@@ -1,0 +1,78 @@
+You are generating Step-1 financial planning policy JSON.
+
+Use the provided JSON context as source-of-truth.
+Do not invent client facts that are not supported by context.
+Return exactly one JSON object and nothing else.
+
+Required output schema:
+{
+  "policy_title": "string",
+  "executive_summary": "string",
+  "sections": [
+    {
+      "id": "string",
+      "title": "string",
+      "content": "string"
+    }
+  ],
+  "portfolio": {
+    "currency": "string",
+    "total_transfer": 0.0,
+    "recommended_securities": [
+      {
+        "security_id": "string",
+        "security_name": "string",
+        "asset_class": "string",
+        "allocation_pct": 0.0,
+        "allocation_amount": 0.0,
+        "management_style": "active|passive"
+      }
+    ]
+  },
+  "execution": {
+    "remedy_name": "string",
+    "funding_source": "string",
+    "capital_deployment_timeline": "string"
+  },
+  "risk_framework": "string",
+  "evaluation_metrics": "string",
+  "fee_and_governance_notes": "string",
+  "disclaimer": "string",
+  "tool_execution_log": "string"
+}
+
+Section requirements:
+- sections must contain all 14 sections exactly in this order:
+  1) Client Background
+  2) Client Financial Snapshot
+  3) Client Financial Needs
+  4) Client Investment Preferences and Behavioral Considerations
+  5) Taxes, Exclusions, and Exemptions
+  6) Other Special Requirements
+  7) Capital Deployment Timeline
+  8) Portfolio Policy
+  9) Investment Vehicle Selection Highlights
+  10) Risk Management Framework
+  11) Policy Evaluation Metrics
+  12) Fee and Governance Notes
+  13) Disclaimer and Acknowledgment
+  14) Tool Execution Log
+
+Section 9 requirement:
+- Section title must be exactly "Investment Vehicle Selection Highlights".
+- Section 9 content must be a JSON string (no markdown) with schema:
+  {"recommended_securities":[{"security_name":"string","asset_class":"string","allocation_pct":0.0,"allocation_amount":0.0,"management_style":"active|passive","security_id":"string"}]}
+- Preserve provided securities from context when available.
+- allocation_pct and allocation_amount must be numeric and internally consistent.
+
+Consistency rules:
+- policy_title and execution.remedy_name must describe the same policy.
+- execution.funding_source must be exactly: "JPMorgan Chase Bank, N.A. — Account ending in XXX".
+- portfolio.total_transfer must be numeric and non-null.
+- Capital Deployment Timeline section must include one explicit numeric USD capital amount.
+- portfolio.total_transfer, the deployment amount in Capital Deployment Timeline, and the sum of Section 9 allocation_amount values must be numerically consistent.
+
+Output rules:
+- Use stable section ids (for example s1..s14).
+- Keep content specific and concise.
+- Do not output any UI schema fields (no menu/detail/execution.total_transfer contract fields).

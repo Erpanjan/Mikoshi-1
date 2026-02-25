@@ -1,0 +1,101 @@
+name: Deploy to Firebase
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  # Determine environment from tag
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      environment: ${{ steps.extract-env.outputs.environment }}
+      tag: ${{ steps.extract-env.outputs.tag }}
+    steps:
+      - name: Extract environment from tag
+        id: extract-env
+        run: |
+          TAG_NAME="${GITHUB_REF#refs/tags/}"
+          echo "Full tag: $TAG_NAME"
+          
+          # Extract environment prefix (everything before the first hyphen)
+          ENVIRONMENT=$(echo "$TAG_NAME" | cut -d'-' -f1)
+          echo "environment=$ENVIRONMENT" >> $GITHUB_OUTPUT
+          echo "tag=$TAG_NAME" >> $GITHUB_OUTPUT
+          echo "Deploying to environment: $ENVIRONMENT"
+
+  deploy:
+    needs: prepare
+    runs-on: ubuntu-latest
+    environment: ${{ needs.prepare.outputs.environment }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.18.0'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: '10.11.0'
+
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Create production environment file
+        run: |
+          cat > .env.production << EOF
+          NEXT_PUBLIC_SERVER_API_URL=${{ vars.NEXT_PUBLIC_SERVER_API_URL }}
+          NEXT_PUBLIC_SERVER_API_PORT=${{ vars.NEXT_PUBLIC_SERVER_API_PORT }}
+          NEXT_PUBLIC_SERVER_SOCKET_URL=${{ vars.NEXT_PUBLIC_SERVER_SOCKET_URL }}
+          NEXT_PUBLIC_FIREBASE_API_KEY=${{ vars.NEXT_PUBLIC_FIREBASE_API_KEY }}
+          NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=${{ vars.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN }}
+          NEXT_PUBLIC_FIREBASE_PROJECT_ID=${{ vars.NEXT_PUBLIC_FIREBASE_PROJECT_ID }}
+          NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=${{ vars.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET }}
+          NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=${{ vars.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID }}
+          NEXT_PUBLIC_FIREBASE_APP_ID=${{ vars.NEXT_PUBLIC_FIREBASE_APP_ID }}
+          NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=${{ vars.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID }}
+          EOF
+          echo "✅ Environment file created"
+          echo "📋 Verifying environment variables:"
+          echo "FIREBASE_PROJECT_ID: ${{ vars.NEXT_PUBLIC_FIREBASE_PROJECT_ID }}"
+
+      - name: Build Next.js app
+        run: pnpm run build
+
+      - name: Deploy to Firebase Hosting (Live)
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'
+          projectId: voluntas-pitch
+          channelId: live
+
+      - name: Deployment summary
+        run: |
+          echo "## 🚀 Deployment Complete!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment:** ${{ needs.prepare.outputs.environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Tag:** ${{ needs.prepare.outputs.tag }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Project:** voluntas-pitch" >> $GITHUB_STEP_SUMMARY
+          echo "**App:** Investor Pitch (Next.js)" >> $GITHUB_STEP_SUMMARY
+

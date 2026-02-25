@@ -1,0 +1,27 @@
+node_modules
+
+# OS files
+.DS_Store
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Local runtime logs
+.logs/
+advisor-agent-service/logs/
+
+# Python cache/build
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Next.js local build output
+frontend/.next/
+frontend/out/
+frontend/tsconfig.tsbuildinfo
+
+# Agent planning artifacts
+cashflow-modeling-service/Implementation Plan and Progress/*.resolved*
+cashflow-modeling-service/Implementation Plan and Progress/*.metadata.json
