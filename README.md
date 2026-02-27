@@ -2,7 +2,7 @@
 
 This repo includes four runtime services that must be up for the end-to-end app flow:
 - `frontend` (Next.js)
-- `advisor-agent-service` (Flask)
+- `solution-agent-service` (Flask)
 - `cashflow-modeling-service` API (Flask)
 - `neoengine-service` API (Flask)
 
@@ -27,7 +27,7 @@ Stop all sessions:
 1. Python dependencies:
 
 ```bash
-pip install -r advisor-agent-service/requirements.txt
+pip install -r solution-agent-service/requirements.txt
 pip install -r cashflow-modeling-service/api/requirements.txt
 pip install -r neoengine-service/api/requirements.txt
 ```
@@ -98,7 +98,7 @@ To inspect the exact context sent to Gemini during advisor runs, temporary promp
 
 ### Log file
 
-- `advisor-agent-service/logs/gemini_prompt_debug.ndjson`
+- `solution-agent-service/logs/gemini_prompt_debug.ndjson`
 
 Each line is a JSON object with:
 - `stage` (`advisor_generate_content` or `ui_transform_generate_content`)
@@ -126,5 +126,5 @@ ADVISOR_TEMP_PROMPT_LOG_PATH=/tmp/gemini_prompt_debug.ndjson ./scripts/dev-up.sh
 ### Inspect latest entries
 
 ```bash
-tail -n 20 advisor-agent-service/logs/gemini_prompt_debug.ndjson
+tail -n 20 solution-agent-service/logs/gemini_prompt_debug.ndjson
 ```

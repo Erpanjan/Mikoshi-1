@@ -27,6 +27,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 import requests
+from dotenv import dotenv_values
 from google import genai
 from google.genai import types
 
@@ -92,9 +93,16 @@ class AdvisorConfig:
         fallback_raw = os.getenv("ADVISOR_GEMINI_FALLBACK_MODELS", "")
         fallback_models = [m.strip() for m in fallback_raw.split(",") if m.strip()]
 
+        # Single source of truth for Gemini keys: repo root .env.
+        root_env_path = Path(__file__).resolve().parent.parent / ".env"
+        root_env: Dict[str, str] = {}
+        if root_env_path.exists():
+            parsed = dotenv_values(root_env_path)
+            root_env = {str(k): str(v or "") for k, v in parsed.items()}
+
         gemini_key = (
-            os.getenv("GOOGLE_GENAI_API_KEY", "").strip()
-            or os.getenv("GEMINI_API_KEY", "").strip()
+            root_env.get("GOOGLE_GENAI_API_KEY", "").strip()
+            or root_env.get("GEMINI_API_KEY", "").strip()
         )
         neo_api_url = (
             os.getenv("NEOENGINE_API_URL", "").strip()

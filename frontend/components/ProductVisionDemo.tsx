@@ -10,6 +10,7 @@ import { Screen2 } from './product-vision/screens/Screen2';
 import { Screen3 } from './product-vision/screens/Screen3';
 import { ScreenWait } from './product-vision/screens/ScreenWait';
 import { Screen4 } from './product-vision/screens/Screen4';
+import { ScreenFinancialDiagnoses } from './product-vision/screens/ScreenFinancialDiagnoses';
 import { Screen5 } from './product-vision/screens/Screen5';
 import { Screen6 } from './product-vision/screens/Screen6';
 import { Screen7 } from './product-vision/screens/Screen7';
@@ -103,6 +104,7 @@ export default function ProductVisionDemo() {
       securities: [],
     },
   };
+  const financialDiagnoses = policy?.financial_diagnoses ?? [];
 
   const policyVoiceContext = useMemo(() => {
     const sections = detailData.sections || [];
@@ -199,7 +201,7 @@ export default function ProductVisionDemo() {
         component: (
           <Screen3
             onConsultationEnd={handleConsultationEnd}
-            onSwitchToChat={() => setCurrentScreen(9)}
+            onSwitchToChat={() => setCurrentScreen(10)}
             isDarkMode={isDarkMode}
             voiceStatus={consultationVoiceStatus}
             voiceMode={consultationVoiceMode}
@@ -227,8 +229,17 @@ export default function ProductVisionDemo() {
       {
         id: 6,
         component: (
+          <ScreenFinancialDiagnoses
+            diagnoses={financialDiagnoses}
+            onNext={() => setCurrentScreen(7)}
+          />
+        ),
+      },
+      {
+        id: 7,
+        component: (
           <Screen4
-            onAnalyzeDepth={() => setCurrentScreen(7)}
+            onAnalyzeDepth={() => setCurrentScreen(8)}
             menu={menuData}
             proposalIndex={policy?.proposal_index ?? 1}
             proposalCount={policy?.proposal_count ?? 1}
@@ -236,12 +247,12 @@ export default function ProductVisionDemo() {
         ),
       },
       {
-        id: 7,
+        id: 8,
         component: (
           <Screen5
             onProceed={() => {
               void stopPolicyVoiceExplanation();
-              setCurrentScreen(8);
+              setCurrentScreen(9);
             }}
             detail={detailData}
             activeVoiceSectionKey={derivedPolicyVoiceSectionKey}
@@ -261,17 +272,17 @@ export default function ProductVisionDemo() {
         ),
       },
       {
-        id: 8,
+        id: 9,
         component: (
           <Screen6
-            onExecute={() => setCurrentScreen(9)}
+            onExecute={() => setCurrentScreen(10)}
             execution={policy?.execution}
             fallbackCurrency={detailData?.portfolio?.currency || 'USD'}
           />
         ),
       },
       {
-        id: 9,
+        id: 10,
         component: (
           <Screen7
             voiceStatus={consultationVoiceStatus}
@@ -301,6 +312,7 @@ export default function ProductVisionDemo() {
       detailData,
       disconnectReason,
       endConsultationVoiceSession,
+      financialDiagnoses,
       handleConsultationEnd,
       handleRetryPolicy,
       isDarkMode,
@@ -309,13 +321,10 @@ export default function ProductVisionDemo() {
       policy,
       policyVoiceContext,
       derivedPolicyVoiceSectionKey,
-      policyVoiceActiveSectionKey,
-      policyVoiceLastAgentMessage,
       policyVoiceStatus,
       policyError,
       isPolicyVoicePlaying,
       startConsultationVoiceSession,
-      prewarmConsultationVoiceSession,
       startPolicyVoiceExplanation,
       stopPolicyVoiceExplanation,
       toggleConsultationMute,
@@ -326,7 +335,7 @@ export default function ProductVisionDemo() {
   const current = screens.find((screen) => screen.id === currentScreen) ?? screens[0];
 
   useEffect(() => {
-    if (currentScreen !== 7 && isPolicyVoicePlaying) {
+    if (currentScreen !== 8 && isPolicyVoicePlaying) {
       void stopPolicyVoiceExplanation();
     }
   }, [currentScreen, isPolicyVoicePlaying, stopPolicyVoiceExplanation]);
@@ -365,8 +374,8 @@ export default function ProductVisionDemo() {
           ))}
 
           <button
-            onClick={() => setCurrentScreen((prev) => Math.min(9, prev + 1))}
-            disabled={currentScreen === 9}
+            onClick={() => setCurrentScreen((prev) => Math.min(10, prev + 1))}
+            disabled={currentScreen === 10}
             className="h-9 w-9 rounded-full border border-white/20 bg-black/50 text-white backdrop-blur-sm disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center"
             aria-label="Next screen"
           >

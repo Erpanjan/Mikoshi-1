@@ -37,12 +37,20 @@ export interface PolicyExecution {
   currency?: string;
 }
 
+export interface FinancialDiagnosisCard {
+  id: string;
+  category: 'investment-solvable' | 'behavioral';
+  title: string;
+  description: string;
+}
+
 export interface FinalPolicy {
   proposal_count: number;
   proposal_index: number;
   menu: PolicyMenu;
   detail: PolicyDetail;
   execution?: PolicyExecution;
+  financial_diagnoses?: FinancialDiagnosisCard[];
 }
 
 export interface ConsultationTurn {

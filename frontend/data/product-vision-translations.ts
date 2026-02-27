@@ -75,6 +75,15 @@ const en = {
       quote: 'This structure balances growth with downside resilience under stressed conditions.',
     },
   },
+  screenFinancialDiagnoses: {
+    title: 'Financial Diagnoses',
+    subtitle: 'Swipe to review each identified gap before policy details.',
+    investmentLabel: 'Investment-Solvable',
+    behavioralLabel: 'Behavioral',
+    emptyStateTitle: 'No diagnoses available',
+    emptyStateDescription: 'No investment-solvable or behavioral gaps were returned from the client profile analysis.',
+    button: 'Policy Selection',
+  },
   screen6: {
     title: 'Execute Policy',
     selectedRemedy: 'Selected policy',

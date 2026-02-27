@@ -1,17 +1,20 @@
-# Advisor Agent Service
+# Solution Agent Service
 
 Flask service that runs an agentic workflow using Gemini and two external tools:
 - Cashflow modeling API
 - Neo engine optimization API
 
-The advisor agent generates a client financial planning policy from profile data.
+The service now uses a two-agent pipeline:
+- Client Profile Agent (cashflow-only): understands client context and identifies needs/gaps.
+- Solution Agent (existing advisor logic): builds Step-1 financial planning policy.
 
 ## Key Design Choices
 
 - Agent brain: `models/gemini-3-pro-preview` by default (`ADVISOR_GEMINI_MODEL` configurable).
-- Two-step policy pipeline:
-  1) Advisor agent runs a tool-enabled loop and produces Step-1 policy JSON.
-  2) A standalone UI generation step calls Gemini again to convert Step-1 policy JSON into UI JSON.
+- Three-step policy pipeline:
+  1) Client Profile Agent runs a cashflow-only loop and outputs profile/gap analysis.
+  2) Solution Agent runs a tool-enabled loop (cashflow + Neo) and produces Step-1 policy JSON.
+  3) A standalone UI generation step calls Gemini again to convert Step-1 policy JSON into UI JSON.
 - Neo tool inputs exposed to the model: only:
   - `target_volatility`
   - `active_risk_percentage`
@@ -24,7 +27,9 @@ The advisor agent generates a client financial planning policy from profile data
 ## Files
 
 - `app.py`: Flask API.
-- `advisor_agent.py`: agent loop, tool clients, compaction logic.
+- `advisor_agent.py`: core agent loop, tool clients, compaction logic.
+- `../client-profile-agent-service/client_profile_agent.py`: client profile agent implementation.
+- `../client-profile-agent-service/prompts/`: prompts for profile analysis stage.
 - `prompts/agent_system.txt`: system prompt used for tool-enabled advisor reasoning.
 - `prompts/core_policy_prompt.txt`: Step-1 policy JSON template.
 - `../policy_ui_transform/generator.py`: standalone policy->UI generation step.
@@ -44,13 +49,13 @@ Supported env names (advisor reads either form):
 2. Install dependencies:
 
 ```bash
-pip install -r advisor-agent-service/requirements.txt
+pip install -r solution-agent-service/requirements.txt
 ```
 
 3. Run service:
 
 ```bash
-cd advisor-agent-service
+cd solution-agent-service
 python app.py
 ```
 

@@ -10,7 +10,7 @@ node_modules
 
 # Local runtime logs
 .logs/
-advisor-agent-service/logs/
+solution-agent-service/logs/
 
 # Python cache/build
 __pycache__/

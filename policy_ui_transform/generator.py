@@ -38,7 +38,7 @@ class PolicyUiGenerator:
             "off",
         }
         default_log_path = (
-            self.prompts_dir.parent.parent / "advisor-agent-service" / "logs" / "gemini_prompt_debug.ndjson"
+            self.prompts_dir.parent.parent / "solution-agent-service" / "logs" / "gemini_prompt_debug.ndjson"
         )
         self._prompt_log_path = Path(
             os.getenv("ADVISOR_TEMP_PROMPT_LOG_PATH", str(default_log_path))

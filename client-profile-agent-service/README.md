@@ -1,0 +1,14 @@
+# Client Profile Agent
+
+This agent is the first stage in the two-agent advisory flow.
+
+Responsibilities:
+- Understand client context from profile/transcript inputs.
+- Run cashflow-based baseline and stress diagnostics.
+- Identify needs and gap categories (`investment-solvable`, `behavioral`, `structural/external`).
+
+Tool access:
+- `runCashflowModel` only.
+
+Output:
+- Structured client profile/gap analysis JSON used as additional context for the solution agent.

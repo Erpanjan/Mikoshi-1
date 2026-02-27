@@ -196,7 +196,7 @@ preflight_ports
 
 start_service "neoengine" "$ROOT_DIR/neoengine-service/api" env PORT="$NEOENGINE_PORT" HOST="$HOST" LOCAL_DEV="$LOCAL_DEV" "$NEOENGINE_PYTHON" app.py
 start_service "cashflow" "$ROOT_DIR/cashflow-modeling-service/api" env PORT="$CASHFLOW_PORT" "$CASHFLOW_PYTHON" app.py
-start_service "advisor" "$ROOT_DIR/advisor-agent-service" env ADVISOR_PORT="$ADVISOR_PORT" "$ADVISOR_PYTHON" app.py
+start_service "advisor" "$ROOT_DIR/solution-agent-service" env ADVISOR_PORT="$ADVISOR_PORT" "$ADVISOR_PYTHON" app.py
 start_service "frontend" "$ROOT_DIR/frontend" env PORT="$FRONTEND_PORT" pnpm dev
 
 echo

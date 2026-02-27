@@ -18,13 +18,13 @@ try:
     from dotenv import load_dotenv
 
     # Consolidated env loading:
-    # 1) repo root .env (shared source of truth)
-    # 2) local advisor .env (optional override)
+    # 1) repo root .env (shared source of truth, overrides process env)
+    # 2) local advisor .env (optional, does not override root .env)
     service_dir = Path(__file__).resolve().parent
     root_env_path = service_dir.parent / ".env"
     local_env_path = service_dir / ".env"
     if root_env_path.exists():
-        load_dotenv(root_env_path, override=False)
+        load_dotenv(root_env_path, override=True)
     if local_env_path.exists():
         load_dotenv(local_env_path, override=False)
 except ImportError:
@@ -34,13 +34,18 @@ _SERVICE_DIR = Path(__file__).resolve().parent
 _REPO_ROOT = _SERVICE_DIR.parent
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
+_CLIENT_PROFILE_AGENT_DIR = _REPO_ROOT / "client-profile-agent-service"
+if str(_CLIENT_PROFILE_AGENT_DIR) not in sys.path:
+    sys.path.insert(0, str(_CLIENT_PROFILE_AGENT_DIR))
 
 from advisor_agent import AdvisorAgent, AdvisorConfig
+from client_profile_agent import ClientProfileAgent, build_client_profile_agent
 from policy_ui_transform.generator import PolicyUiGenerator
 
 app = Flask(__name__)
 
-_ADVISOR_AGENT: Optional[AdvisorAgent] = None
+_SOLUTION_AGENT: Optional[AdvisorAgent] = None
+_CLIENT_PROFILE_AGENT: Optional[ClientProfileAgent] = None
 _POLICY_UI_GENERATOR: Optional[PolicyUiGenerator] = None
 _CONSULTATION_INGESTS: Dict[str, Dict[str, Any]] = {}
 _INGEST_LOCK = threading.Lock()
@@ -144,14 +149,192 @@ def _build_client_payload_with_consultation_context(
     return client_payload, advisor_request, None
 
 
-def get_advisor_agent() -> AdvisorAgent:
-    """Lazily initialize advisor agent from environment config."""
-    global _ADVISOR_AGENT
-    if _ADVISOR_AGENT is None:
+def get_solution_agent() -> AdvisorAgent:
+    """Lazily initialize solution agent from environment config."""
+    global _SOLUTION_AGENT
+    if _SOLUTION_AGENT is None:
         config = AdvisorConfig.from_env()
+        config.max_tool_iterations = int(
+            os.getenv(
+                "SOLUTION_AGENT_MAX_TOOL_ITERATIONS",
+                str(config.max_tool_iterations),
+            )
+        )
+        config.max_cashflow_calls = int(
+            os.getenv(
+                "SOLUTION_AGENT_MAX_CASHFLOW_CALLS",
+                str(config.max_cashflow_calls),
+            )
+        )
+        config.max_neo_calls = int(
+            os.getenv(
+                "SOLUTION_AGENT_MAX_NEO_CALLS",
+                str(config.max_neo_calls),
+            )
+        )
         prompts_dir = Path(__file__).resolve().parent / "prompts"
-        _ADVISOR_AGENT = AdvisorAgent(config=config, prompts_dir=prompts_dir)
-    return _ADVISOR_AGENT
+        _SOLUTION_AGENT = AdvisorAgent(config=config, prompts_dir=prompts_dir)
+    return _SOLUTION_AGENT
+
+
+def get_client_profile_agent() -> ClientProfileAgent:
+    """Lazily initialize client profile agent from environment config."""
+    global _CLIENT_PROFILE_AGENT
+    if _CLIENT_PROFILE_AGENT is None:
+        config = AdvisorConfig.from_env()
+        config.max_tool_iterations = int(
+            os.getenv(
+                "CLIENT_PROFILE_AGENT_MAX_TOOL_ITERATIONS",
+                str(config.max_tool_iterations),
+            )
+        )
+        config.max_cashflow_calls = int(
+            os.getenv(
+                "CLIENT_PROFILE_AGENT_MAX_CASHFLOW_CALLS",
+                str(config.max_cashflow_calls),
+            )
+        )
+        # Profile agent is cashflow-only; keep Neo calls disabled by default.
+        config.max_neo_calls = int(
+            os.getenv(
+                "CLIENT_PROFILE_AGENT_MAX_NEO_CALLS",
+                "0",
+            )
+        )
+        _CLIENT_PROFILE_AGENT = build_client_profile_agent(config)
+    return _CLIENT_PROFILE_AGENT
+
+
+def _run_two_agent_step1_pipeline(
+    client_payload: Dict[str, Any],
+    advisor_request: str,
+) -> Dict[str, Any]:
+    """Run client-profile analysis first, then solution policy generation."""
+    profile_agent = get_client_profile_agent()
+    profile_result = profile_agent.analyze_client_profile(
+        client_payload=client_payload,
+        advisor_request=advisor_request,
+    )
+    profile_analysis = (
+        profile_result.get("profile_analysis")
+        if isinstance(profile_result.get("profile_analysis"), dict)
+        else None
+    )
+
+    solution_payload = dict(client_payload)
+    if profile_analysis is not None:
+        # Feed first-agent diagnosis alongside original transcript/profile context.
+        solution_payload["client_profile_analysis"] = profile_analysis
+
+    solution_agent = get_solution_agent()
+    step1_result = solution_agent.generate_step1_policy_json(
+        client_payload=solution_payload,
+        advisor_request=advisor_request,
+    )
+    step1_result["client_profile_analysis"] = profile_analysis
+    if isinstance(step1_result.get("context"), dict):
+        step1_result["context"]["client_profile_analysis"] = profile_analysis
+        step1_result["context"]["client_profile_agent_context"] = profile_result.get("context", {})
+    return step1_result
+
+
+def _extract_financial_diagnoses(profile_analysis: Optional[Dict[str, Any]]) -> list[Dict[str, str]]:
+    """Normalize profile-agent gaps into frontend card payloads.
+
+    Includes only investment-solvable and behavioral gaps as requested by UI flow.
+    """
+    if not isinstance(profile_analysis, dict):
+        return []
+
+    # Primary schema from client-profile agent: gaps_by_category.
+    # Backward compatibility: identified_gaps.
+    identified = profile_analysis.get("gaps_by_category")
+    if not isinstance(identified, dict):
+        identified = profile_analysis.get("identified_gaps")
+    if not isinstance(identified, dict):
+        return []
+
+    def _find_items(source: Dict[str, Any], aliases: list[str]) -> list[Any]:
+        for alias in aliases:
+            candidate = source.get(alias)
+            if isinstance(candidate, list):
+                return candidate
+            if isinstance(candidate, str) and candidate.strip() == "None":
+                return []
+        return []
+
+    def _pick_text(row: Dict[str, Any], keys: list[str]) -> str:
+        for key in keys:
+            value = str(row.get(key, "") or "").strip()
+            if value:
+                return value
+        return ""
+
+    category_specs = [
+        (
+            "investment-solvable",
+            ["investment-solvable", "investment_solvable", "investment"],
+        ),
+        (
+            "behavioral",
+            ["behavioral", "behavioural"],
+        ),
+    ]
+
+    cards: list[Dict[str, str]] = []
+    for category, aliases in category_specs:
+        entries = _find_items(identified, aliases)
+        for index, entry in enumerate(entries):
+            if isinstance(entry, dict):
+                title = _pick_text(entry, ["gap", "title", "name"])
+                description = _pick_text(entry, ["discussion", "description", "explanation", "summary"])
+            elif isinstance(entry, str):
+                title = entry.strip()
+                description = entry.strip()
+            else:
+                title = ""
+                description = ""
+            if not title or not description:
+                continue
+            cards.append(
+                {
+                    "id": f"{category}-{index + 1}",
+                    "category": category,
+                    "title": title,
+                    "description": description,
+                }
+            )
+
+    return cards
+
+
+def _parse_nonempty_json_body() -> Tuple[Optional[Dict[str, Any]], Optional[Tuple[Any, int]]]:
+    """Parse and validate that request body is a non-empty JSON object."""
+    body = request.get_json(silent=True) or {}
+    if not isinstance(body, dict) or not body:
+        return None, (jsonify({"success": False, "error": "Request JSON body is required"}), 400)
+    return body, None
+
+
+def _build_step1_result_from_body(
+    body: Dict[str, Any]
+) -> Tuple[Optional[Dict[str, Any]], Optional[Tuple[Any, int]]]:
+    """Build step-1 policy result from request body including consultation context."""
+    client_payload, advisor_request, error_response = _build_client_payload_with_consultation_context(body)
+    if error_response is not None:
+        return None, error_response
+
+    step1_result = _run_two_agent_step1_pipeline(
+        client_payload=client_payload,
+        advisor_request=advisor_request,
+    )
+    step1_policy = step1_result.get("step1_policy")
+    if not isinstance(step1_policy, dict):
+        return None, (
+            jsonify({"success": False, "error": "Advisor returned invalid Step-1 policy payload"}),
+            500,
+        )
+    return step1_result, None
 
 
 def get_policy_ui_generator() -> PolicyUiGenerator:
@@ -275,7 +458,7 @@ def _create_elevenlabs_signed_url_response(agent_id: str, missing_agent_env_name
 @app.route("/health", methods=["GET"])
 def health() -> Any:
     """Service health endpoint."""
-    return jsonify({"status": "healthy", "service": "advisor-agent-service"}), 200
+    return jsonify({"status": "healthy", "service": "solution-agent-service"}), 200
 
 
 @app.route("/advisor/api/v1/tool-health", methods=["GET"])
@@ -286,8 +469,8 @@ def tool_health() -> Any:
         return jsonify(error), 401
 
     try:
-        agent = get_advisor_agent()
-        status = agent.check_tool_access()
+        solution_agent = get_solution_agent()
+        status = solution_agent.check_tool_access()
         is_healthy = status["cashflow"]["ok"] and status["neo_engine"]["ok"]
         http_status = 200 if is_healthy else 503
         return jsonify({"success": is_healthy, "tool_health": status}), http_status
@@ -340,20 +523,17 @@ def generate_policy() -> Any:
         return jsonify(error), 401
 
     try:
-        body = request.get_json() or {}
-        if not isinstance(body, dict) or not body:
-            return jsonify({"success": False, "error": "Request JSON body is required"}), 400
-
-        client_payload, advisor_request, error_response = _build_client_payload_with_consultation_context(body)
+        body, error_response = _parse_nonempty_json_body()
         if error_response is not None:
             return error_response
 
-        agent = get_advisor_agent()
-        result = agent.generate_policy(
-            client_payload=client_payload,
-            advisor_request=advisor_request,
-        )
-        policy_markdown = str(result.get("policy_markdown", "") or "").strip()
+        step1_result, error_response = _build_step1_result_from_body(body)
+        if error_response is not None:
+            return error_response
+
+        solution_agent = get_solution_agent()
+        step1_policy = step1_result.get("step1_policy")
+        policy_markdown = str(solution_agent._render_step1_policy_markdown(step1_policy) or "").strip()
         if not policy_markdown:
             return (
                 jsonify(
@@ -390,22 +570,15 @@ def generate_policy_json() -> Any:
         return jsonify(error), 401
 
     try:
-        body = request.get_json() or {}
-        if not isinstance(body, dict) or not body:
-            return jsonify({"success": False, "error": "Request JSON body is required"}), 400
-
-        client_payload, advisor_request, error_response = _build_client_payload_with_consultation_context(body)
+        body, error_response = _parse_nonempty_json_body()
         if error_response is not None:
             return error_response
 
-        agent = get_advisor_agent()
-        step1_result = agent.generate_step1_policy_json(
-            client_payload=client_payload,
-            advisor_request=advisor_request,
-        )
+        step1_result, error_response = _build_step1_result_from_body(body)
+        if error_response is not None:
+            return error_response
+
         step1_policy = step1_result.get("step1_policy")
-        if not isinstance(step1_policy, dict):
-            return jsonify({"success": False, "error": "Advisor returned invalid Step-1 policy payload"}), 500
 
         ui_generator = get_policy_ui_generator()
         ui_result = ui_generator.generate_ui_policy_json(
@@ -416,10 +589,14 @@ def generate_policy_json() -> Any:
         if not isinstance(raw_ui_policy, dict):
             return jsonify({"success": False, "error": "UI transformer returned invalid policy payload"}), 500
 
-        final_policy = agent.normalize_ui_policy_json(
+        solution_agent = get_solution_agent()
+        final_policy = solution_agent.normalize_ui_policy_json(
             payload=raw_ui_policy,
             securities=step1_result.get("flat_securities", []),
             portfolio=step1_result.get("portfolio", {}),
+        )
+        final_policy["financial_diagnoses"] = _extract_financial_diagnoses(
+            step1_result.get("client_profile_analysis")
         )
 
         return jsonify(final_policy), 200
@@ -447,23 +624,15 @@ def generate_step1_policy_json() -> Any:
         return jsonify(error), 401
 
     try:
-        body = request.get_json() or {}
-        if not isinstance(body, dict) or not body:
-            return jsonify({"success": False, "error": "Request JSON body is required"}), 400
-
-        client_payload, advisor_request, error_response = _build_client_payload_with_consultation_context(body)
+        body, error_response = _parse_nonempty_json_body()
         if error_response is not None:
             return error_response
 
-        agent = get_advisor_agent()
-        result = agent.generate_step1_policy_json(
-            client_payload=client_payload,
-            advisor_request=advisor_request,
-        )
-        step1_policy = result.get("step1_policy")
-        if not isinstance(step1_policy, dict):
-            return jsonify({"success": False, "error": "Advisor returned invalid Step-1 policy payload"}), 500
-        return jsonify(step1_policy), 200
+        step1_result, error_response = _build_step1_result_from_body(body)
+        if error_response is not None:
+            return error_response
+
+        return jsonify(step1_result["step1_policy"]), 200
     except ValueError as exc:
         return jsonify({"success": False, "error": str(exc)}), 400
     except Exception as exc:  # pylint: disable=broad-except
@@ -615,5 +784,5 @@ if __name__ == "__main__":
     port = int(port_str) if port_str else 8002
     debug = os.getenv("FLASK_DEBUG", "false").lower() == "true"
 
-    print(f"Starting advisor-agent-service on port {port}")
+    print(f"Starting solution-agent-service on port {port}")
     app.run(host="0.0.0.0", port=port, debug=debug)
