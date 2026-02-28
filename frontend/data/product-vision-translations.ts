@@ -78,10 +78,12 @@ const en = {
   screenFinancialDiagnoses: {
     title: 'Financial Diagnoses',
     subtitle: 'Swipe to review each identified gap before policy details.',
-    investmentLabel: 'Investment-Solvable',
-    behavioralLabel: 'Behavioral',
+    investmentLabel: 'Investment Related',
+    insuranceLabel: 'Insurance Related',
+    spendingLabel: 'Spending Related',
+    liabilityLabel: 'Liability Related',
     emptyStateTitle: 'No diagnoses available',
-    emptyStateDescription: 'No investment-solvable or behavioral gaps were returned from the client profile analysis.',
+    emptyStateDescription: 'No financial diagnosis gaps were returned from the client profile analysis.',
     button: 'Policy Selection',
   },
   screen6: {

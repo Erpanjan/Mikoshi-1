@@ -139,7 +139,7 @@ class ClientProfileAgent(AdvisorAgent):
             "Objectives:\n"
             "1) Build clear client understanding from profile/transcript context.\n"
             "2) Use cashflow modeling (deterministic + probabilistic) for gap diagnosis.\n"
-            "3) Identify gaps by category: investment-solvable, behavioral, structural/external.\n"
+            "3) Identify gaps by category: investment related, insurance related, spending related, liability related.\n"
             "4) Produce concise, actionable diagnostic output (not policy construction).\n\n"
             "Additional request from advisor/user:\n"
             f"{request_text}\n\n"
@@ -169,7 +169,12 @@ class ClientProfileAgent(AdvisorAgent):
         if not isinstance(gaps, dict):
             raise ValueError("Client profile analysis requires gaps_by_category object")
 
-        for key in ["investment-solvable", "behavioral", "structural/external"]:
+        for key in [
+            "investment related",
+            "insurance related",
+            "spending related",
+            "liability related",
+        ]:
             if key not in gaps:
                 raise ValueError(f"gaps_by_category.{key} is required")
             value = gaps.get(key)

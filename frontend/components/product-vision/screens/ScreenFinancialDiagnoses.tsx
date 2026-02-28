@@ -23,7 +23,7 @@ export const ScreenFinancialDiagnoses = ({
     return [
       {
         id: 'placeholder-1',
-        category: 'investment-solvable' as const,
+        category: 'investment related' as const,
         title: t.emptyStateTitle,
         description: t.emptyStateDescription,
       },
@@ -94,7 +94,12 @@ export const ScreenFinancialDiagnoses = ({
                 className="w-full shrink-0 bg-white border border-gray-200 p-8 min-h-[320px] dark:bg-[#3B3B3D] dark:border-white/5 transition-colors duration-300"
               >
                 <div className="inline-flex items-center rounded-full border border-gray-200 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.15em] text-onyx dark:text-white dark:border-white/15">
-                  {card.category === 'behavioral' ? t.behavioralLabel : t.investmentLabel}
+                  {{
+                    'investment related': t.investmentLabel,
+                    'insurance related': t.insuranceLabel,
+                    'spending related': t.spendingLabel,
+                    'liability related': t.liabilityLabel,
+                  }[card.category]}
                 </div>
                 <h3 className="mt-6 text-2xl font-sans font-medium text-onyx leading-tight dark:text-white transition-colors duration-300">
                   {card.title}

@@ -241,7 +241,7 @@ def _run_two_agent_step1_pipeline(
 def _extract_financial_diagnoses(profile_analysis: Optional[Dict[str, Any]]) -> list[Dict[str, str]]:
     """Normalize profile-agent gaps into frontend card payloads.
 
-    Includes only investment-solvable and behavioral gaps as requested by UI flow.
+    Includes all supported client-profile diagnosis categories for UI display.
     """
     if not isinstance(profile_analysis, dict):
         return []
@@ -272,12 +272,23 @@ def _extract_financial_diagnoses(profile_analysis: Optional[Dict[str, Any]]) -> 
 
     category_specs = [
         (
-            "investment-solvable",
-            ["investment-solvable", "investment_solvable", "investment"],
+            "investment related",
+            [
+                "investment related",
+                "investment_related",
+            ],
         ),
         (
-            "behavioral",
-            ["behavioral", "behavioural"],
+            "insurance related",
+            ["insurance related", "insurance_related", "insurance"],
+        ),
+        (
+            "spending related",
+            ["spending related", "spending_related", "spending"],
+        ),
+        (
+            "liability related",
+            ["liability related", "liability_related", "liability", "debt"],
         ),
     ]
 

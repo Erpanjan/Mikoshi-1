@@ -9,9 +9,10 @@ Required output schema:
   "client_understanding_summary": "string",
   "identified_needs": ["string"],
   "gaps_by_category": {
-    "investment-solvable": [{"gap":"string","discussion":"string"}] | "None",
-    "behavioral": [{"gap":"string","discussion":"string"}] | "None",
-    "structural/external": [{"gap":"string","discussion":"string"}] | "None"
+    "investment related": [{"gap":"string","discussion":"string"}] | "None",
+    "insurance related": [{"gap":"string","discussion":"string"}] | "None",
+    "spending related": [{"gap":"string","discussion":"string"}] | "None",
+    "liability related": [{"gap":"string","discussion":"string"}] | "None"
   },
   "scenario_findings": "string",
   "key_assumptions_and_uncertainties": "string",
@@ -25,6 +26,11 @@ Output rules:
   - why the gap exists,
   - what evidence supports it (baseline/stress cashflow observations),
   - why it belongs to that category.
+- Use the four categories as major personal-finance need areas:
+  - `investment related`: portfolio construction, concentration, asset allocation, investment adequacy, tax-efficient placement.
+  - `insurance related`: life, disability, health-shock protection, survivorship, and risk-transfer gaps.
+  - `spending related`: recurring expense burden, savings shortfall, lifestyle sustainability, reserve adequacy.
+  - `liability related`: mortgage, education debt, leverage structure, refinancing or debt-service strain.
 - `gap` must be a short card-ready title (3-12 words), not a full paragraph.
 - `discussion` must be one paragraph summary suitable for UI display.
 - Do not include solution, remedy, portfolio, or implementation recommendations.

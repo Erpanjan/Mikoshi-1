@@ -39,7 +39,11 @@ export interface PolicyExecution {
 
 export interface FinancialDiagnosisCard {
   id: string;
-  category: 'investment-solvable' | 'behavioral';
+  category:
+    | 'investment related'
+    | 'insurance related'
+    | 'spending related'
+    | 'liability related';
   title: string;
   description: string;
 }
